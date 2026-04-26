@@ -244,9 +244,7 @@ export default function NewMapComponent() {
             <p>
               <strong>Province:</strong> {hoveredDistrict.province}
             </p>
-            <p>
-              <strong>PCode:</strong> {hoveredDistrict.pcode}
-            </p>
+           
           </div>
         ) : (
           <p>Hover over a district on the map.</p>
