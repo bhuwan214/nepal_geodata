@@ -1,0 +1,106 @@
+.app-shell {
+	min-height: 100vh;
+	padding: 24px;
+	background: linear-gradient(145deg, #f7f9f3 0%, #e7efe1 100%);
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.map-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 280px;
+	gap: 20px;
+	align-items: start;
+  /* padding: 40px; */
+}
+
+.map-canvas {
+	position: relative;
+	background: #ffffff;
+	border-radius: 14px;
+	box-shadow: 0 10px 30px rgba(52, 77, 45, 0.12);
+	overflow: hidden;
+  padding: 20px;
+}
+
+.nepal-map {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+.district-shape {
+	cursor: pointer;
+	transition: fill 120ms ease;
+}
+
+.district-shape:hover {
+	fill: #e76f51;
+}
+
+.district-panel {
+	background: #ffffff;
+	border-radius: 12px;
+	padding: 18px;
+	box-shadow: 0 8px 24px rgba(46, 73, 38, 0.1);
+	opacity: 0;
+	transform: translateY(4px);
+	transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.district-panel.active {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.district-panel h3 {
+	margin: 0 0 12px;
+	color: #234d2b;
+}
+
+.district-panel p {
+	margin: 8px 0;
+	color: #2c3e2f;
+}
+
+.map-tooltip {
+	position: absolute;
+	pointer-events: none;
+	background: rgba(18, 43, 25, 0.92);
+	color: #f2f9f3;
+	border-radius: 10px;
+	padding: 10px 12px;
+	min-width: 140px;
+	opacity: 0;
+	transform: translateY(6px);
+	transition: opacity 90ms ease, transform 90ms ease;
+}
+
+.map-tooltip.visible {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.tooltip-title {
+	font-size: 14px;
+	font-weight: 700;
+	margin-bottom: 4px;
+}
+
+.tooltip-row {
+	font-size: 12px;
+	opacity: 0.9;
+}
+
+@media (max-width: 900px) {
+	.app-shell {
+		padding: 12px;
+	}
+
+	.map-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.district-panel {
+		margin-top: 4px;
+	}
+}
