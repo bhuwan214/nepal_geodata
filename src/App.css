@@ -29,12 +29,12 @@
 }
 
 .district-shape {
-	cursor: pointer;
-	transition: fill 120ms ease;
+	pointer-events: none;
 }
 
-.district-shape:hover {
-	fill: #e76f51;
+.protected-area-shape {
+	cursor: pointer;
+	transition: fill 120ms ease, fill-opacity 120ms ease;
 }
 
 .district-panel {

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 import geoDataUrl from "./assets/map/nepal-map.geojson?url";
+import protectedAreasUrl from "./assets/map/nepal-protected-area.geojson?url";
+import { useTheme } from "./themes/ThemeContext.jsx";
 
 const ringArea = (ring) => {
   let sum = 0;
@@ -50,6 +52,49 @@ const normalizeFeatureWinding = (feature) => {
   return feature;
 };
 
+const webMercatorToLonLat = ([x, y]) => {
+  const lon = (x / 20037508.34) * 180;
+  const lat = (180 / Math.PI) * (2 * Math.atan(Math.exp((y / 20037508.34) * Math.PI)) - Math.PI / 2);
+  return [lon, lat];
+};
+
+const isProjectedCoordinate = ([x, y]) => Math.abs(x) > 180 || Math.abs(y) > 90;
+
+const convertProtectedAreaFeatureToLonLat = (feature) => {
+  const geometry = feature.geometry;
+  if (!geometry) {
+    return feature;
+  }
+
+  if (geometry.type === "Polygon") {
+    return {
+      ...feature,
+      geometry: {
+        ...geometry,
+        coordinates: geometry.coordinates.map((ring) =>
+          ring.map((coord) => (isProjectedCoordinate(coord) ? webMercatorToLonLat(coord) : coord))
+        ),
+      },
+    };
+  }
+
+  if (geometry.type === "MultiPolygon") {
+    return {
+      ...feature,
+      geometry: {
+        ...geometry,
+        coordinates: geometry.coordinates.map((polygon) =>
+          polygon.map((ring) =>
+            ring.map((coord) => (isProjectedCoordinate(coord) ? webMercatorToLonLat(coord) : coord))
+          )
+        ),
+      },
+    };
+  }
+
+  return feature;
+};
+
 const getDistrictInfo = (feature) => {
   const properties = feature.properties ?? {};
   return {
@@ -60,9 +105,24 @@ const getDistrictInfo = (feature) => {
   };
 };
 
+const getProtectedAreaInfo = (feature) => {
+  const properties = feature.properties ?? {};
+  return {
+    name: properties.name_eng ?? properties.name ?? "Unknown Protected Area",
+    nepaliName: properties.name ?? "N/A",
+    designation: properties.desig_eng ?? properties.desig ?? "N/A",
+    iucnCategory: properties.iucn_cat ?? "N/A",
+    areaSqKm: properties.gis_area ?? properties.rep_area ?? "N/A",
+    status: properties.status ?? "N/A",
+    statusYear: properties.status_yr ?? "N/A",
+  };
+};
+
 export default function NewMapComponent() {
-  const [geoData, setGeoData] = useState(null);
-  const [hoveredDistrict, setHoveredDistrict] = useState(null);
+  const { theme } = useTheme();
+  const [districtData, setDistrictData] = useState(null);
+  const [protectedAreaData, setProtectedAreaData] = useState(null);
+  const [hoveredProtectedArea, setHoveredProtectedArea] = useState(null);
   const [tooltip, setTooltip] = useState({ x: 0, y: 0, visible: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -79,16 +139,29 @@ export default function NewMapComponent() {
       try {
         setLoading(true);
         setError("");
-        const response = await fetch(geoDataUrl);
+        const [districtResponse, protectedAreaResponse] = await Promise.all([
+          fetch(geoDataUrl),
+          fetch(protectedAreasUrl),
+        ]);
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch map data (${response.status})`);
+        if (!districtResponse.ok) {
+          throw new Error(`Failed to fetch district map data (${districtResponse.status})`);
         }
 
-        const data = await response.json();
+        if (!protectedAreaResponse.ok) {
+          throw new Error(
+            `Failed to fetch protected area map data (${protectedAreaResponse.status})`
+          );
+        }
+
+        const [districtJson, protectedAreaJson] = await Promise.all([
+          districtResponse.json(),
+          protectedAreaResponse.json(),
+        ]);
 
         if (isMounted) {
-          setGeoData(data);
+          setDistrictData(districtJson);
+          setProtectedAreaData(protectedAreaJson);
         }
       } catch (fetchError) {
         if (isMounted) {
@@ -112,17 +185,17 @@ export default function NewMapComponent() {
   }, []);
 
   const projection = useMemo(() => {
-    if (!geoData) {
+    if (!districtData) {
       return null;
     }
 
     const normalizedData = {
-      ...geoData,
-      features: geoData.features.map(normalizeFeatureWinding),
+      ...districtData,
+      features: districtData.features.map(normalizeFeatureWinding),
     };
 
     return d3.geoMercator().fitSize([width, height], normalizedData);
-  }, [geoData, width, height]);
+  }, [districtData, width, height]);
 
   const pathGenerator = useMemo(() => {
     if (!projection) {
@@ -133,13 +206,13 @@ export default function NewMapComponent() {
   }, [projection]);
 
   const districts = useMemo(() => {
-    if (!geoData || !pathGenerator) {
+    if (!districtData || !pathGenerator) {
       return [];
     }
 
     const normalizedData = {
-      ...geoData,
-      features: geoData.features.map(normalizeFeatureWinding),
+      ...districtData,
+      features: districtData.features.map(normalizeFeatureWinding),
     };
 
     return normalizedData.features.map((feature, i) => {
@@ -151,7 +224,29 @@ export default function NewMapComponent() {
         info,
       };
     });
-  }, [geoData, pathGenerator]);
+  }, [districtData, pathGenerator]);
+
+  const protectedAreas = useMemo(() => {
+    if (!protectedAreaData || !pathGenerator) {
+      return [];
+    }
+
+    const normalizedData = {
+      ...protectedAreaData,
+      features: protectedAreaData.features
+        .map(convertProtectedAreaFeatureToLonLat)
+        .map(normalizeFeatureWinding),
+    };
+
+    return normalizedData.features.map((feature, i) => {
+      const info = getProtectedAreaInfo(feature);
+      return {
+        id: `${info.name}-${i}`,
+        path: pathGenerator(feature),
+        info,
+      };
+    });
+  }, [protectedAreaData, pathGenerator]);
 
   const updateTooltipPosition = (event) => {
     if (!mapContainerRef.current) {
@@ -175,14 +270,14 @@ export default function NewMapComponent() {
     });
   };
 
-  const handleMouseEnter = (event, info) => {
-    setHoveredDistrict(info);
+  const handleProtectedAreaMouseEnter = (event, info) => {
+    setHoveredProtectedArea(info);
     updateTooltipPosition(event);
     setTooltip((prev) => ({ ...prev, visible: true }));
   };
 
-  const handleMouseLeave = () => {
-    setHoveredDistrict(null);
+  const handleProtectedAreaMouseLeave = () => {
+    setHoveredProtectedArea(null);
     setTooltip((prev) => ({ ...prev, visible: false }));
   };
 
@@ -203,19 +298,35 @@ export default function NewMapComponent() {
           preserveAspectRatio="xMidYMid meet"
         >
           {districts.map((district) => {
-            const isHovered = hoveredDistrict?.name === district.name;
-
             return (
               <path
                 key={district.id}
                 d={district.path}
                 className="district-shape"
-                fill={isHovered ? "#e76f51" : "#95b89c"}
-                stroke="#ffffff"
+                fill={theme.colors.secondary}
+                stroke={theme.colors.stroke}
                 strokeWidth={0.5}
-                onMouseEnter={(event) => handleMouseEnter(event, district.info)}
+              />
+            );
+          })}
+
+          {protectedAreas.map((protectedArea) => {
+            const isHovered = hoveredProtectedArea?.name === protectedArea.info.name;
+
+            return (
+              <path
+                key={protectedArea.id}
+                d={protectedArea.path}
+                className="protected-area-shape"
+                fill={isHovered ? theme.colors.primaryHover : theme.colors.primary}
+                fillOpacity={isHovered ? 0.9 : 0.7}
+                stroke={theme.colors.textPrimary}
+                strokeWidth={0.8}
+                onMouseEnter={(event) =>
+                  handleProtectedAreaMouseEnter(event, protectedArea.info)
+                }
                 onMouseMove={updateTooltipPosition}
-                onMouseLeave={handleMouseLeave}
+                onMouseLeave={handleProtectedAreaMouseLeave}
               />
             );
           })}
@@ -223,31 +334,59 @@ export default function NewMapComponent() {
 
         <div
           className={`map-tooltip ${tooltip.visible ? "visible" : ""}`}
-          style={{ left: `${tooltip.x}px`, top: `${tooltip.y}px` }}
+          style={{
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+            backgroundColor: theme.colors.tooltipBg,
+            color: theme.colors.tooltipText,
+          }}
         >
-          <div className="tooltip-title">{hoveredDistrict?.name}</div>
-          <div className="tooltip-row">HQ: {hoveredDistrict?.hq}</div>
+          <div className="tooltip-title">{hoveredProtectedArea?.name}</div>
+          <div className="tooltip-row">
+            {hoveredProtectedArea?.designation} | IUCN: {hoveredProtectedArea?.iucnCategory}
+          </div>
         </div>
       </div>
 
-      <aside className={`district-panel ${hoveredDistrict ? "active" : ""}`}>
-        <h3>District Info</h3>
+      <aside
+        className={`district-panel ${hoveredProtectedArea ? "active" : ""}`}
+        style={{
+          background: theme.colors.cardBackground,
+          color: theme.colors.textPrimary,
+          boxShadow: `0 8px 24px ${theme.colors.panelShadow}`,
+        }}
+      >
+        <h3 style={{ color: theme.colors.textPrimary }}>Protected Area Info</h3>
 
-        {hoveredDistrict ? (
+        {hoveredProtectedArea ? (
           <div>
             <p>
-              <strong>Name:</strong> {hoveredDistrict.name}
+              <strong>Name:</strong> {hoveredProtectedArea.name}
             </p>
             <p>
-              <strong>HQ:</strong> {hoveredDistrict.hq}
+              <strong>Nepali Name:</strong> {hoveredProtectedArea.nepaliName}
             </p>
             <p>
-              <strong>Province:</strong> {hoveredDistrict.province}
+              <strong>Designation:</strong> {hoveredProtectedArea.designation}
             </p>
-           
+            <p>
+              <strong>IUCN Category:</strong> {hoveredProtectedArea.iucnCategory}
+            </p>
+            <p>
+              <strong>Area (sq km):</strong>{" "}
+              {typeof hoveredProtectedArea.areaSqKm === "number"
+                ? hoveredProtectedArea.areaSqKm.toFixed(2)
+                : hoveredProtectedArea.areaSqKm}
+            </p>
+            <p>
+              <strong>Status:</strong> {hoveredProtectedArea.status}
+            </p>
+            <p>
+              <strong>Status Year:</strong> {hoveredProtectedArea.statusYear}
+            </p>
           </div>
         ) : (
-          <p>Hover over a district on the map.</p>
+          <p>Hover over a protected area to view details.</p>
         )}
       </aside>
     </div>
