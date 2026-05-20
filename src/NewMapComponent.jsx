@@ -346,49 +346,47 @@ export default function NewMapComponent() {
             {hoveredProtectedArea?.designation} | IUCN: {hoveredProtectedArea?.iucnCategory}
           </div>
         </div>
+        <div
+          className={`district-panel map-info-overlay ${hoveredProtectedArea ? "active" : ""}`}
+          style={{
+            color: theme.colors.textPrimary,
+            boxShadow: "none",
+          }}
+        >
+          <h3 style={{ color: theme.colors.textPrimary }}>Protected Area Info</h3>
+
+          {hoveredProtectedArea ? (
+            <div>
+              <p>
+                <strong>Name:</strong> {hoveredProtectedArea.name}
+              </p>
+              <p>
+                <strong>Nepali Name:</strong> {hoveredProtectedArea.nepaliName}
+              </p>
+              <p>
+                <strong>Designation:</strong> {hoveredProtectedArea.designation}
+              </p>
+              <p>
+                <strong>IUCN Category:</strong> {hoveredProtectedArea.iucnCategory}
+              </p>
+              <p>
+                <strong>Area (sq km):</strong>{" "}
+                {typeof hoveredProtectedArea.areaSqKm === "number"
+                  ? hoveredProtectedArea.areaSqKm.toFixed(2)
+                  : hoveredProtectedArea.areaSqKm}
+              </p>
+              <p>
+                <strong>Status:</strong> {hoveredProtectedArea.status}
+              </p>
+              <p>
+                <strong>Status Year:</strong> {hoveredProtectedArea.statusYear}
+              </p>
+            </div>
+          ) : (
+            <p>Hover over a protected area to view details.</p>
+          )}
+        </div>
       </div>
-
-      <aside
-        className={`district-panel ${hoveredProtectedArea ? "active" : ""}`}
-        style={{
-          background: theme.colors.cardBackground,
-          color: theme.colors.textPrimary,
-          boxShadow: `0 8px 24px ${theme.colors.panelShadow}`,
-        }}
-      >
-        <h3 style={{ color: theme.colors.textPrimary }}>Protected Area Info</h3>
-
-        {hoveredProtectedArea ? (
-          <div>
-            <p>
-              <strong>Name:</strong> {hoveredProtectedArea.name}
-            </p>
-            <p>
-              <strong>Nepali Name:</strong> {hoveredProtectedArea.nepaliName}
-            </p>
-            <p>
-              <strong>Designation:</strong> {hoveredProtectedArea.designation}
-            </p>
-            <p>
-              <strong>IUCN Category:</strong> {hoveredProtectedArea.iucnCategory}
-            </p>
-            <p>
-              <strong>Area (sq km):</strong>{" "}
-              {typeof hoveredProtectedArea.areaSqKm === "number"
-                ? hoveredProtectedArea.areaSqKm.toFixed(2)
-                : hoveredProtectedArea.areaSqKm}
-            </p>
-            <p>
-              <strong>Status:</strong> {hoveredProtectedArea.status}
-            </p>
-            <p>
-              <strong>Status Year:</strong> {hoveredProtectedArea.statusYear}
-            </p>
-          </div>
-        ) : (
-          <p>Hover over a protected area to view details.</p>
-        )}
-      </aside>
     </div>
   );
 }

@@ -1,23 +1,36 @@
 .app-shell {
+	position: relative;
 	min-height: 100vh;
-	padding: 24px;
-	background: linear-gradient(145deg, #f7f9f3 0%, #e7efe1 100%);
+	background: #ffffff;
 	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
+.page-background-layer {
+	position: fixed;
+	inset: 0;
+	z-index: 0;
+}
+
+.page-content-layer {
+	position: relative;
+	z-index: 1;
+	min-height: 100vh;
+	padding: 24px;
+	pointer-events: none;
+}
+
 .map-layout {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) 280px;
-	gap: 20px;
+	display: block;
 	align-items: start;
   /* padding: 40px; */
+	pointer-events: auto;
 }
 
 .map-canvas {
 	position: relative;
-	background: #ffffff;
+	background: transparent;
 	border-radius: 14px;
-	box-shadow: 0 10px 30px rgba(52, 77, 45, 0.12);
+	box-shadow: none;
 	overflow: hidden;
   padding: 20px;
 }
@@ -38,13 +51,23 @@
 }
 
 .district-panel {
-	background: #ffffff;
+	background: transparent;
 	border-radius: 12px;
 	padding: 18px;
-	box-shadow: 0 8px 24px rgba(46, 73, 38, 0.1);
+	box-shadow: none;
 	opacity: 0;
 	transform: translateY(4px);
 	transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.map-info-overlay {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	width: min(320px, calc(100% - 32px));
+	z-index: 3;
+	pointer-events: none;
+	backdrop-filter: blur(1px);
 }
 
 .district-panel.active {
@@ -93,14 +116,20 @@
 
 @media (max-width: 900px) {
 	.app-shell {
+		min-height: 100vh;
+	}
+
+	.page-content-layer {
 		padding: 12px;
 	}
 
 	.map-layout {
-		grid-template-columns: 1fr;
+		display: block;
 	}
 
-	.district-panel {
-		margin-top: 4px;
+	.map-info-overlay {
+		top: 10px;
+		right: 10px;
+		width: calc(100% - 20px);
 	}
 }
