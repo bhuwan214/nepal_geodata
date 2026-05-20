@@ -1,14 +1,44 @@
 .app-shell {
 	position: relative;
+	isolation: isolate;
 	min-height: 100vh;
 	background: #ffffff;
 	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+a.active {
+  color: red;
+}
+
+a.pending {
+  animate: pulse 1s infinite;
 }
 
 .page-background-layer {
 	position: fixed;
 	inset: 0;
 	z-index: 0;
+	pointer-events: none;
+}
+
+.simple-dot-background {
+	background-color: #ffffff;
+	background-image:
+		radial-gradient(circle at 1px 1px, rgba(190, 198, 207, 0.35) 1px, transparent 0),
+		linear-gradient(145deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 1) 100%);
+	background-size: 22px 22px, 100% 100%;
+	background-position: 0 0, 0 0;
+	opacity: 1;
+}
+
+.page-navbar-layer {
+	position: sticky;
+	top: 0;
+	z-index: 30;
+	background: transparent;
+	max-width: 80%;
+	margin: 0 auto;
+	width: 100%;
 }
 
 .page-content-layer {
@@ -17,6 +47,159 @@
 	min-height: 100vh;
 	padding: 24px;
 	pointer-events: none;
+	max-width: 80%;
+	margin: 0 auto;
+	width: 100%;
+}
+
+.hero-section {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: calc(100vh - 120px);
+	margin: 0 auto;
+	padding: 28px 16px 40px;
+	pointer-events: auto;
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
+	background-repeat: no-repeat;
+}
+
+.hero-copy {
+	position: relative;
+	z-index: 2;
+	max-width: 680px;
+	padding: 28px 0;
+	color: #16202a;
+	text-align: center;
+}
+
+.hero-kicker {
+	margin: 0 0 14px;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.32em;
+	text-transform: uppercase;
+	color: #9c7a3a;
+}
+
+.hero-copy h1 {
+	margin: 0;
+	font-size: clamp(2.6rem, 5vw, 4.8rem);
+	line-height: 0.98;
+	letter-spacing: -0.05em;
+	font-weight: 800;
+	text-wrap: balance;
+	text-shadow: none;
+}
+
+.hero-description {
+	max-width: 720px;
+	margin: 22px auto 0;
+	font-size: clamp(1rem, 1.8vw, 1.25rem);
+	line-height: 1.7;
+	color: #55616e;
+}
+
+.hero-search-shell {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	max-width: 760px;
+	margin: 28px auto 0;
+	padding: 10px 12px 10px 18px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 999px;
+	background: #ffffff;
+	backdrop-filter: none;
+	box-shadow: 0 14px 36px rgba(17, 24, 39, 0.08);
+	border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.hero-search-icon {
+	display: grid;
+	place-items: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 999px;
+	color: rgba(255, 255, 255, 0.9);
+	background: #eef3f6;
+	flex: none;
+	font-size: 18px;
+	color: #7a8a99;
+}
+
+.hero-search-shell input {
+	flex: 1;
+	min-width: 0;
+	border: 0;
+	outline: none;
+	background: transparent;
+	color: #0f172a;
+	font-size: 1rem;
+	font-family: inherit;
+}
+
+.hero-search-shell input::placeholder {
+	color: #8b96a6;
+}
+
+.hero-search-shell button {
+	border: 0;
+	padding: 14px 24px;
+	border-radius: 999px;
+	background: #9ed48f;
+	color: #123120;
+	font-size: 0.82rem;
+	font-weight: 800;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+	box-shadow: 0 10px 20px rgba(158, 212, 143, 0.2);
+	cursor: default;
+}
+
+.hero-visual {
+	position: relative;
+	min-height: 440px;
+	border-radius: 30px;
+	overflow: hidden;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	box-shadow: 0 25px 60px rgba(17, 24, 39, 0.12);
+}
+
+.hero-visual-overlay {
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(13, 22, 31, 0.08) 100%),
+		radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.18), transparent 28%);
+}
+
+.route-page {
+	max-width: 1100px;
+	margin: 24px auto 0;
+	padding: 20px 24px;
+	border-radius: 18px;
+	background: transparent;
+	color: #1f2937;
+	backdrop-filter: none;
+	pointer-events: auto;
+}
+
+.route-page h1 {
+	margin: 0 0 8px;
+	font-size: 28px;
+	font-weight: 700;
+}
+
+.route-page p {
+	margin: 0;
+	font-size: 15px;
+	line-height: 1.6;
 }
 
 .map-layout {
@@ -24,6 +207,14 @@
 	align-items: start;
   /* padding: 40px; */
 	pointer-events: auto;
+}
+
+.navbar-container {
+	position: relative;
+	z-index: 30;
+	width: 100%;
+	backdrop-filter: blur(2px);
+	background: transparent;
 }
 
 .map-canvas {
@@ -121,6 +312,29 @@
 
 	.page-content-layer {
 		padding: 12px;
+	}
+
+	.hero-section {
+		grid-template-columns: 1fr;
+		min-height: auto;
+		padding: 14px 10px 30px;
+	}
+
+	.hero-copy {
+		padding: 16px 0 4px;
+	}
+
+	.hero-search-shell {
+		flex-wrap: wrap;
+		border-radius: 22px;
+	}
+
+	.hero-search-shell button {
+		width: 100%;
+	}
+
+	.hero-visual {
+		min-height: 300px;
 	}
 
 	.map-layout {
